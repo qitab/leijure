@@ -19,22 +19,22 @@ import java.util.Collections;
 
 public class LoadClojure {
     public static ClassLoader loader;
-    public static Class SymbolClass;
-    public static Class VarClass;
-    public static Class IFnClass;
-    public static Method SymbolInternMethod;
-    public static Method SymbolGetNamespace;
-    public static Method SymbolGetName;
-    public static Method VarInternMethod;
-    public static Method IFnInvoke1Method;
-    public static Object LoadStringFunction;
+    public static Class symbolClass;
+    public static Class varClass;
+    public static Class ifnClass;
+    public static Method symbolInternMethod;
+    public static Method symbolGetNamespace;
+    public static Method symbolGetName;
+    public static Method varInternMethod;
+    public static Method ifnInvoke1Method;
+    public static Object loadStringFunction;
 
     public static final Object[] nullargs = new Object[] { };
 
     public static final Object intern (String qualifiedName) {
         final Object[] args = new Object[] { qualifiedName };
         try {
-            return SymbolInternMethod.invoke(null, qualifiedName);
+            return symbolInternMethod.invoke(null, qualifiedName);
         } catch (Exception ex) {
             return null;
         }
@@ -43,9 +43,9 @@ public class LoadClojure {
     public static final Object var (String qualifiedName) {
         try {
             final Object sym = intern(qualifiedName);
-            final String ns = (String)SymbolGetNamespace.invoke(sym, nullargs);
-            final String name = (String)SymbolGetName.invoke(sym, nullargs);
-            return VarInternMethod.invoke(null, intern(ns), intern(name));
+            final String ns = (String)symbolGetNamespace.invoke(sym, nullargs);
+            final String name = (String)symbolGetName.invoke(sym, nullargs);
+            return varInternMethod.invoke(null, intern(ns), intern(name));
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -54,7 +54,7 @@ public class LoadClojure {
 
     public static final Object loadString (String s) {
         try {
-            return IFnInvoke1Method.invoke(LoadStringFunction, s);
+            return ifnInvoke1Method.invoke(loadStringFunction, s);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -97,25 +97,25 @@ public class LoadClojure {
             Thread.currentThread().setContextClassLoader(loader);
 
             Class.forName("clojure.lang.RT", true, loader); // initialize Clojure
-            SymbolClass = Class.forName("clojure.lang.Symbol", true, loader);
-            VarClass = Class.forName("clojure.lang.Var", true, loader);
-            IFnClass = Class.forName("clojure.lang.IFn", true, loader);
+            symbolClass = Class.forName("clojure.lang.Symbol", true, loader);
+            varClass = Class.forName("clojure.lang.Var", true, loader);
+            ifnClass = Class.forName("clojure.lang.IFn", true, loader);
             // ClojureClass = loader.loadClass("clojure.java.api.Clojure", true, loader);
 
-            SymbolInternMethod =
-                SymbolClass.getDeclaredMethod("intern", new Class[] { String.class });
-            SymbolGetNamespace =
-                SymbolClass.getDeclaredMethod("getNamespace", new Class[] { });
-            SymbolGetName =
-                SymbolClass.getDeclaredMethod("getName", new Class[] { });
-            VarInternMethod =
-                VarClass.getDeclaredMethod("intern", new Class[] { SymbolClass, SymbolClass });
-            IFnInvoke1Method =
-                IFnClass.getDeclaredMethod("invoke", new Class[] { Object.class });
+            symbolInternMethod =
+                symbolClass.getDeclaredMethod("intern", new Class[] { String.class });
+            symbolGetNamespace =
+                symbolClass.getDeclaredMethod("getNamespace", new Class[] { });
+            symbolGetName =
+                symbolClass.getDeclaredMethod("getName", new Class[] { });
+            varInternMethod =
+                varClass.getDeclaredMethod("intern", new Class[] { symbolClass, symbolClass });
+            ifnInvoke1Method =
+                ifnClass.getDeclaredMethod("invoke", new Class[] { Object.class });
 
             // ReadStringFunction = var("clojure.core/read-string");
             // EvalFunction = var("clojure.core/eval");
-            LoadStringFunction = var("clojure.core/load-string");
+            loadStringFunction = var("clojure.core/load-string");
         } catch (Exception ex) {
             ex.printStackTrace();
             return false;
