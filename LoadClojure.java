@@ -1,6 +1,7 @@
 // Copyright (c) 2014 Google, Inc.
 // The use and distribution terms for this software are covered by the
 // Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+// Original author: Francois-Rene Rideau <tunes@google.com>
 
 import java.lang.IllegalAccessException;
 import java.lang.NoSuchMethodException;
@@ -84,43 +85,46 @@ public class LoadClojure {
         return urls.toArray(new URL[urls.size()]);
     }
 
-    public static Boolean init () {
-        return init(null);
+    public static void init () {
+        init(null);
     }
     @SuppressWarnings("unchecked")
-    public static Boolean init (URL jarUrl) {
-        try {
-            URL[] urls = findClojureJarUrls(jarUrl);
-            loader = new URLClassLoader(urls);
+    public static void init (URL jarUrl) {
+        if (loadStringFunction == null) { // only initialize once
+            try {
+                // if Clojure is not present, load it from the proper jar URL
+                try {
+                    Class.forName("clojure.lang.RT");
+                } catch (ClassNotFoundException ex) {
+                    URL[] urls = findClojureJarUrls(jarUrl);
+                    loader = new URLClassLoader(urls);
+                    // See: http://dev.clojure.org/jira/browse/CLJ-260
+                    Thread.currentThread().setContextClassLoader(loader);
+                    Class.forName("clojure.lang.RT", true, loader);
+                }
 
-            // See: http://dev.clojure.org/jira/browse/CLJ-260
-            Thread.currentThread().setContextClassLoader(loader);
+                // Now that Clojure is loaded, get references to its classes and methods
+                symbolClass = Class.forName("clojure.lang.Symbol", true, loader);
+                varClass = Class.forName("clojure.lang.Var", true, loader);
+                ifnClass = Class.forName("clojure.lang.IFn", true, loader);
 
-            Class.forName("clojure.lang.RT", true, loader); // initialize Clojure
-            symbolClass = Class.forName("clojure.lang.Symbol", true, loader);
-            varClass = Class.forName("clojure.lang.Var", true, loader);
-            ifnClass = Class.forName("clojure.lang.IFn", true, loader);
-            // ClojureClass = loader.loadClass("clojure.java.api.Clojure", true, loader);
-
-            symbolInternMethod =
-                symbolClass.getDeclaredMethod("intern", new Class[] { String.class });
-            symbolGetNamespace =
-                symbolClass.getDeclaredMethod("getNamespace", new Class[] { });
-            symbolGetName =
-                symbolClass.getDeclaredMethod("getName", new Class[] { });
-            varInternMethod =
-                varClass.getDeclaredMethod("intern", new Class[] { symbolClass, symbolClass });
-            ifnInvoke1Method =
+                symbolInternMethod =
+                    symbolClass.getDeclaredMethod("intern", new Class[] { String.class });
+                symbolGetNamespace =
+                    symbolClass.getDeclaredMethod("getNamespace", new Class[] { });
+                symbolGetName =
+                    symbolClass.getDeclaredMethod("getName", new Class[] { });
+                varInternMethod =
+                    varClass.getDeclaredMethod("intern", new Class[] { symbolClass, symbolClass });
+                ifnInvoke1Method =
                 ifnClass.getDeclaredMethod("invoke", new Class[] { Object.class });
 
-            // ReadStringFunction = var("clojure.core/read-string");
-            // EvalFunction = var("clojure.core/eval");
-            loadStringFunction = var("clojure.core/load-string");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return false;
+                loadStringFunction = var("clojure.core/load-string");
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
-        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -134,6 +138,7 @@ public class LoadClojure {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
+        // Process command line argument: accept --clojure_jar_url <url> as only option.
         URL jarUrl = null;
         LinkedList<String> arglist = new LinkedList<String>(Arrays.asList(args));
         if (!arglist.isEmpty() && arglist.get(0).equals("--clojure_jar_url")) {
@@ -148,6 +153,18 @@ public class LoadClojure {
             }
         }
         init(jarUrl);
-        System.out.println(loadStrings(arglist));
+
+        /* Now that we're ready to evaluate things,
+           load all (remaining) arguments as clojure code using load-string,
+           and return the last value.
+
+           Note that if you want to print something, you'll have to do it yourself,
+           with e.g. (println foo) — it's not very useful to use the Java printer,
+           too much pain to get to the clojure printer, and even worse to make it
+           configurable so that nothing's printed when not desired.
+           (And we shall not afford the use of a real command-line parsing library
+           to achieve this configuration, for we here aim at minimalism.)
+        */
+        loadStrings(arglist);
     }
 }
