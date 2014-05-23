@@ -17,22 +17,16 @@ import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class DynLoadClojure {
-    public static int answer = 42;
-
-    public static URL clojure_jar;
+public class LoadClojure {
     public static ClassLoader loader;
     public static Class SymbolClass;
     public static Class VarClass;
     public static Class IFnClass;
-    // public static Class ClojureClass;
     public static Method SymbolInternMethod;
     public static Method SymbolGetNamespace;
     public static Method SymbolGetName;
     public static Method VarInternMethod;
     public static Method IFnInvoke1Method;
-    // public static Object ReadStringFunction;
-    // public static Object EvalFunction;
     public static Object LoadStringFunction;
 
     public static final Object[] nullargs = new Object[] { };
@@ -58,31 +52,7 @@ public class DynLoadClojure {
         }
     }
 
-    /*
-    public static final Object ReadString (String s) {
-        try {
-            return IFnInvoke1Method.invoke(ReadStringFunction, s);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    public static final Object Eval (Object form) {
-        try {
-            return IFnInvoke1Method.invoke(EvalFunction, form);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
-    public static final Object ReadEval (String s) {
-        return Eval(ReadString(s));
-    }
-    */
-
-    public static final Object LoadString (String s) {
+    public static final Object loadString (String s) {
         try {
             return IFnInvoke1Method.invoke(LoadStringFunction, s);
         } catch (Exception ex) {
@@ -91,10 +61,10 @@ public class DynLoadClojure {
         }
     }
 
-    public static URL[] find_clojure_jar_urls (URL jarURL) {
+    public static URL[] findClojureJarUrls (URL jarUrl) {
         final LinkedList<URL> urls = new LinkedList<URL>();
         try {
-            urls.add(jarURL);
+            urls.add(jarUrl);
         } catch (Exception ex) { }
         try {
             urls.add(new URL(System.getProperty("clojure.jar.url")));
@@ -118,9 +88,9 @@ public class DynLoadClojure {
         return init(null);
     }
     @SuppressWarnings("unchecked")
-    public static Boolean init (URL jarURL) {
+    public static Boolean init (URL jarUrl) {
         try {
-            URL[] urls = find_clojure_jar_urls(jarURL);
+            URL[] urls = findClojureJarUrls(jarUrl);
             loader = new URLClassLoader(urls);
 
             // See: http://dev.clojure.org/jira/browse/CLJ-260
@@ -154,30 +124,30 @@ public class DynLoadClojure {
     }
 
     @SuppressWarnings("unchecked")
-    public static Object LoadStrings(Iterable<String> forms) {
+    public static Object loadStrings(Iterable<String> forms) {
         Object result = null;
         for (String s: forms) {
-            result = LoadString(s);
+            result = loadString(s);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
-        URL jarURL = null;
+        URL jarUrl = null;
         LinkedList<String> arglist = new LinkedList<String>(Arrays.asList(args));
         if (!arglist.isEmpty() && arglist.get(0).equals("--clojure_jar_url")) {
             arglist.pop();
             if (!arglist.isEmpty()) {
                 try {
-                    jarURL = new URL(arglist.get(0));
+                    jarUrl = new URL(arglist.get(0));
                 } catch(Exception ex) {
                     ex.printStackTrace();
                 }
                 arglist.pop();
             }
         }
-        init(jarURL);
-        System.out.println(LoadStrings(arglist));
+        init(jarUrl);
+        System.out.println(loadStrings(arglist));
     }
 }
