@@ -3,21 +3,17 @@
 // Apache License 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
 // Original author: Francois-Rene Rideau <tunes@google.com>
 
-import java.lang.IllegalAccessException;
-import java.lang.NoSuchMethodException;
-import java.lang.System;
-import java.lang.Thread;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.io.File;
-import java.net.MalformedURLException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 
+/**
+ * Trivial class to load and use Clojure in a Java application that doesn't include it by default.
+ */
 public class LoadClojure {
     public static ClassLoader loader;
     public static Class symbolClass;
@@ -44,8 +40,8 @@ public class LoadClojure {
     public static final Object var (String qualifiedName) {
         try {
             final Object sym = intern(qualifiedName);
-            final String ns = (String)symbolGetNamespace.invoke(sym, nullargs);
-            final String name = (String)symbolGetName.invoke(sym, nullargs);
+            final String ns = (String) symbolGetNamespace.invoke(sym, nullargs);
+            final String name = (String) symbolGetName.invoke(sym, nullargs);
             return varInternMethod.invoke(null, intern(ns), intern(name));
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -66,21 +62,21 @@ public class LoadClojure {
         final LinkedList<URL> urls = new LinkedList<URL>();
         try {
             urls.add(jarUrl);
-        } catch (Exception ex) { }
+        } catch (Exception ex) { ; }
         try {
             urls.add(new URL(System.getProperty("clojure.jar.url")));
-        } catch (Exception ex) { }
+        } catch (Exception ex) { ; }
         try {
             urls.add(new URL(System.getenv("CLOJURE_JAR_URL")));
-        } catch (Exception ex) { }
+        } catch (Exception ex) { ; }
         try {
             urls.add(new File(new File(System.getProperty("user.home")),
                               "local/share/java/clojure.jar").toURI().toURL());
-        } catch (Exception ex) { }
+        } catch (Exception ex) { ; }
         try {
             urls.add(new File("/usr/local/share/java/clojure.jar").toURI().toURL());
             urls.add(new File("/usr/share/java/clojure.jar").toURI().toURL());
-        } catch (Exception ex) { }
+        } catch (Exception ex) { ; }
         urls.removeAll(Collections.singleton(null));
         return urls.toArray(new URL[urls.size()]);
     }
@@ -130,7 +126,7 @@ public class LoadClojure {
     @SuppressWarnings("unchecked")
     public static Object loadStrings(Iterable<String> forms) {
         Object result = null;
-        for (String s: forms) {
+        for (String s : forms) {
             result = loadString(s);
         }
         return result;
@@ -146,7 +142,7 @@ public class LoadClojure {
             if (!arglist.isEmpty()) {
                 try {
                     jarUrl = new URL(arglist.get(0));
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
                 arglist.pop();
