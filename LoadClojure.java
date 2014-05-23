@@ -1,6 +1,6 @@
 // Copyright (c) 2014 Google, Inc.
 // The use and distribution terms for this software are covered by the
-// Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+// Apache License 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
 // Original author: Francois-Rene Rideau <tunes@google.com>
 
 import java.lang.IllegalAccessException;
