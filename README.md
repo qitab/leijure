@@ -1,7 +1,9 @@
-LoadClojure
-===========
+com.google.leijure
+==================
 
-Trivial java class to (dynamically) load Clojure and evaluate code with it.
+Simple libraries to use clojure
+
+LoadClojure: trivial java class to load Clojure and evaluate code with it.
 
 Copyright (c) 2014 Google, Inc.
 The use and distribution terms for this software are covered by the
