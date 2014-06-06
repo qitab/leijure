@@ -17,8 +17,14 @@ here is `LoadClojure`. You can evaluate clojure code with:
 
 Alternatively, you can:
 
-        LoadClojure.init(new URL("file:///home/me/jars/clojure.jar"));
+        clojure = new LoadClojure(new URL("file:///home/me/jars/clojure.jar"));
+        clojure.loadStrings(Arrays.asList(argv));
+
+Or you can:
+
+        new LoadClojure(new URL("file:///home/me/jars/clojure.jar"));
         LoadClojure.loadStrings(Arrays.asList(argv));
+
 
 `loadString` will load code from one string and return the results from the last evaluated form.
 `loadStrings` will load code from each of many strings and return the results from the last form

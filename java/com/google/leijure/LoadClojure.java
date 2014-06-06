@@ -5,6 +5,7 @@
 package com.google.leijure;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -31,8 +32,9 @@ public class LoadClojure {
 
   /**
    * Returns the clojure Symbol with specified name.
-   * @param qualifiedName the String holding the qualified, e.g. "clojure.core/read-string"
-   * @return the interned Symbol (actually of type Symbol) or null if an exception occured
+   * @param qualifiedName the String holding the qualified, e.g. {@code "clojure.core/read-string"}
+   * @return the interned Symbol (actually of type {@code clojure.lang.Symbol})
+   * or {@code null} if an exception occured
    */
   private static final Object intern (String qualifiedName) {
     final Object[] args = new Object[] { qualifiedName };
@@ -46,7 +48,8 @@ public class LoadClojure {
   /**
    * Returns the clojure Var object with specified name.
    * @param qualifiedName the String holding the qualified, e.g. {@code "clojure.core/println"}
-   * @return the interned Var (actually of type {@code Var}) or {@code null} if an exception occured
+   * @return the interned Var (actually of type {@code clojure.lang.Var})
+   * or {@code null} if an exception occurred.
    */
   private static final Object var (String qualifiedName) {
     try {
@@ -64,8 +67,10 @@ public class LoadClojure {
    * Evaluates a string as a sequence of Clojure expressions as by {@code load-string}
    * @param forms a String containing clojure expressions to evaluate
    * @return the value of the last expression in the string
+   * @throws whatever the evaluated form throws encapsulated in a InvocationTargetException.
    */
-  public static final Object loadString (String forms) throws Exception {
+  public static final Object loadString (String forms)
+    throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     return ifnInvoke1Method.invoke(loadStringFunction, forms);
   }
 
@@ -74,11 +79,13 @@ public class LoadClojure {
    * @param forms an {@code Iterable<String>} each containing clojure expressions
    * to evaluate as by {@link #loadString}
    * @return the value of the last expression in the last string, or {@code null}
+   * @throws whatever the evaluated form throws encapsulated in a InvocationTargetException.
    */
-  public static Object loadStrings(Iterable<String> forms) throws Exception {
+  public static Object loadStrings(Iterable<String> forms)
+    throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
     Object result = null;
-    for (String form : forms) {
-      result = loadString(form);
+    for (String f : forms) {
+      result = loadString(f);
     }
     return result;
   }
@@ -116,24 +123,25 @@ public class LoadClojure {
   }
 
   /**
-   * Initializes the LoadClojure class.
-   * The init method must be successfully called at least once before
+   * Initializes the LoadClojure class and returns a LoadClojure placeholder object.
+   * The constructor method must be successfully called at least once before
    * you may use {@link #loadString} or {@link #loadStrings}.
-   * Subsequent calls are no-op.
-   * @see #init(URL) to specify the location of the clojure.jar
+   * Subsequent calls are no-op even if an argument is provided.
+   * @return a LoadClojure placeholder object on which to invoke {@link #loadString}.
+   * @see #LoadClojure(URL) to specify the location of the clojure.jar
    */
-  public static void init () throws Exception {
-    init(null);
-  }
+  public LoadClojure() throws Exception { this(null); }
+
   /**
-   * Initializes the LoadClojure class.
+   * Initializes the LoadClojure class and returns a LoadClojure placeholder object.
    * The init method must be successfully called at least once before
    * you may use {@link #loadString} or {@link #loadStrings}.
-   * Subsequent calls are no-op.
+   * Subsequent calls are no-op and their arguments are ignored.
    * @param jarUrl an optional URL where to look for the clojure jar.
+   * @return a LoadClojure placeholder object on which to invoke {@link #loadString}.
    */
   @SuppressWarnings("unchecked")
-  public static void init (URL jarUrl) throws Exception {
+  public LoadClojure(URL jarUrl) throws Exception {
     if (!isInitialized()) { // only initialize once
       // if Clojure is not present, load it from the proper jar URL
       try {
@@ -164,9 +172,6 @@ public class LoadClojure {
     }
   }
 
-  public LoadClojure() throws Exception { init(); }
-  public LoadClojure(URL jarUrl) throws Exception { init(jarUrl); }
-
   private static final String JAR_URL_OPTION = "--clojure_jar_url";
 
   /**
@@ -190,7 +195,6 @@ public class LoadClojure {
         jarUrl = new URL(arglist.pop().substring(JAR_URL_OPTION.length() + 1));
       }
     }
-    init(jarUrl);
     /* Now that we're ready to evaluate things,
        load all (remaining) arguments as clojure code using load-string,
        and return the last value.
@@ -202,6 +206,6 @@ public class LoadClojure {
        (And we shall not afford the use of a real command-line parsing library
        to achieve this configuration, for we here aim at minimalism.)
     */
-    loadStrings(arglist);
+    new LoadClojure(jarUrl).loadStrings(arglist);
   }
 }
