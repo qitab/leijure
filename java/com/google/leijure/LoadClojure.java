@@ -16,24 +16,25 @@ import java.util.LinkedList;
  * Trivial class to load and use Clojure in a Java application that doesn't include it by default.
  */
 public class LoadClojure {
-  public static ClassLoader loader;
-  public static Class symbolClass;
-  public static Class varClass;
-  public static Class ifnClass;
-  public static Method symbolInternMethod;
-  public static Method symbolGetNamespace;
-  public static Method symbolGetName;
-  public static Method varInternMethod;
-  public static Method ifnInvoke1Method;
-  public static Object loadStringFunction;
+  private static ClassLoader loader;
+  private static Class symbolClass;
+  private static Class varClass;
+  private static Class ifnClass;
+  private static Method symbolInternMethod;
+  private static Method symbolGetNamespace;
+  private static Method symbolGetName;
+  private static Method varInternMethod;
+  private static Method ifnInvoke1Method;
+  private static Object loadStringFunction;
 
-  public static final Object[] nullargs = new Object[] { };
+  private static final Object[] nullargs = new Object[] { };
 
   /**
-   * intern: given a qualified name as a String, e.g. "clojure.core/read-string",
-   * return the clojure Symbol with specified name.
+   * Returns the clojure Symbol with specified name.
+   * @param qualifiedName the String holding the qualified, e.g. "clojure.core/read-string"
+   * @return the interned Symbol (actually of type Symbol) or null if an exception occured
    */
-  public static final Object intern (String qualifiedName) {
+  private static final Object intern (String qualifiedName) {
     final Object[] args = new Object[] { qualifiedName };
     try {
       return symbolInternMethod.invoke(null, qualifiedName);
@@ -43,10 +44,11 @@ public class LoadClojure {
   }
 
   /**
-   * var: given  a qualified name as a String, e.g. "clojure.core/println",
-   * return the corresponding var object.
+   * Returns the clojure Var object with specified name.
+   * @param qualifiedName the String holding the qualified, e.g. {@code "clojure.core/println"}
+   * @return the interned Var (actually of type {@code Var}) or {@code null} if an exception occured
    */
-  public static final Object var (String qualifiedName) {
+  private static final Object var (String qualifiedName) {
     try {
       final Object sym = intern(qualifiedName);
       final String ns = (String) symbolGetNamespace.invoke(sym, nullargs);
@@ -59,31 +61,34 @@ public class LoadClojure {
   }
 
   /**
-   * loadString: given a String s, evaluate the string as a sequence of
-   * Clojure expressions as by load-string, returning the value of the last expression.
+   * Evaluates a string as a sequence of Clojure expressions as by {@code load-string}
+   * @param forms a String containing clojure expressions to evaluate
+   * @return the value of the last expression in the string
    */
-  public static final Object loadString (String s) throws Exception {
-    return ifnInvoke1Method.invoke(loadStringFunction, s);
+  public static final Object loadString (String forms) throws Exception {
+    return ifnInvoke1Method.invoke(loadStringFunction, forms);
   }
 
   /**
-   * loadStrings: given an Iterable<String>, evaluate each string as by loadString,
-   * and return the value of the last expression.
+   * Evaluates a sequence of strings each as a sequence of Clojure expressions
+   * @param forms an {@code Iterable<String>} each containing clojure expressions
+   * to evaluate as by {@link #loadString}
+   * @return the value of the last expression in the last string, or {@code null}
    */
-  @SuppressWarnings("unchecked")
   public static Object loadStrings(Iterable<String> forms) throws Exception {
     Object result = null;
-    for (String s : forms) {
-      result = loadString(s);
+    for (String form : forms) {
+      result = loadString(form);
     }
     return result;
   }
 
   /**
-   * given an optional jar URL as an override,
-   * return a list of URLs where to look for the clojure jar.
+   * Computes a list of URLs where to look for the clojure jar.
+   * @param jarURL an optional jar URL to override default locations.
+   * @return a list of URLs.
    */
-  public static URL[] findClojureJarUrls (URL jarUrl) {
+  private static URL[] findClojureJarUrls (URL jarUrl) {
     final LinkedList<URL> urls = new LinkedList<URL>();
     try {
       urls.add(jarUrl);
@@ -106,19 +111,27 @@ public class LoadClojure {
     return urls.toArray(new URL[urls.size()]);
   }
 
-  public static Boolean isInitialized () {
+  private static Boolean isInitialized () {
     return loadStringFunction != null;
   }
 
   /**
+   * Initializes the LoadClojure class.
    * The init method must be successfully called at least once before
-   * you may use loadString or loadStrings.
+   * you may use {@link #loadString} or {@link #loadStrings}.
    * Subsequent calls are no-op.
-   * init takes an optional argument, being a URL for the Clojure jar file.
+   * @see #init(URL) to specify the location of the clojure.jar
    */
   public static void init () throws Exception {
     init(null);
   }
+  /**
+   * Initializes the LoadClojure class.
+   * The init method must be successfully called at least once before
+   * you may use {@link #loadString} or {@link #loadStrings}.
+   * Subsequent calls are no-op.
+   * @param jarUrl an optional URL where to look for the clojure jar.
+   */
   @SuppressWarnings("unchecked")
   public static void init (URL jarUrl) throws Exception {
     if (!isInitialized()) { // only initialize once
@@ -151,24 +164,31 @@ public class LoadClojure {
     }
   }
 
-  @SuppressWarnings("unchecked")
   public LoadClojure() throws Exception { init(); }
-  @SuppressWarnings("unchecked")
   public LoadClojure(URL jarUrl) throws Exception { init(jarUrl); }
 
+  private static final String JAR_URL_OPTION = "--clojure_jar_url";
 
+  /**
+   * Evaluates Clojure expressions specified at the command-line.
+   * This function, provided for test and demonstration purposes,
+   * shows how to use LoadClojure.
+   * @param args the command-line arguments, which may optionally start with
+   * the argument <code>--clojure_jar_url &lt;url&gt;</code> to specify
+   * which jar to load Clojure from.
+   */
   public static void main(String[] args) throws Exception {
     // Process command line argument: accept --clojure_jar_url <url> as only option.
     URL jarUrl = null;
     LinkedList<String> arglist = new LinkedList<String>(Arrays.asList(args));
     if (!arglist.isEmpty()) {
-        if (arglist.get(0).equals("--clojure_jar_url")) {
-            arglist.pop();
-            assert(!arglist.isEmpty());
-            jarUrl = new URL(arglist.pop());
-        } else if (arglist.get(0).startsWith("--clojure_jar_url=")) {
-            jarUrl = new URL(arglist.pop().substring(18));
-        }
+      if (arglist.get(0).equals(JAR_URL_OPTION)) {
+        arglist.pop();
+        assert(!arglist.isEmpty());
+        jarUrl = new URL(arglist.pop());
+      } else if (arglist.get(0).startsWith(JAR_URL_OPTION + "=")) {
+        jarUrl = new URL(arglist.pop().substring(JAR_URL_OPTION.length() + 1));
+      }
     }
     init(jarUrl);
     /* Now that we're ready to evaluate things,
