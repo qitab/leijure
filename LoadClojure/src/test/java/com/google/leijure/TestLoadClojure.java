@@ -4,16 +4,18 @@
 package com.google.leijure;
 
 import com.google.leijure.LoadClojure;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
-// import java.util.ListUtils;
+
+import junit.framework.TestCase;
 
 /**
  * Trivial class to load and use Clojure in a Java application that doesn't include it by default.
  */
-public class LoadClojureTest {
+public class TestLoadClojure extends TestCase {
     public class A {
         int x;
     }
@@ -23,12 +25,8 @@ public class LoadClojureTest {
     }
     public int getX(A a) { return a.x; }
 
-    public static List<String> foo = new LinkedList<String>();
-    public static void main(String[] args) throws Exception {
-        LinkedList<String> arglist = new LinkedList<String>(Arrays.asList(args));
-        foo.add("1");
-        foo.add("2");
-        new LoadClojure().loadString("(println com.google.leijure.Test/foo)");
-        System.out.println(Test.class.getMethods("getX")); // , A.class));
-  }
+    public void testLoadClojure () throws Exception {
+        LoadClojure lc = new LoadClojure();
+        assertEquals(4L, lc.loadString("(+ 2 2)"));
+    }
 }
