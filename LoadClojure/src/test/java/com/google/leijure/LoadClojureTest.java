@@ -13,7 +13,7 @@ import java.util.LinkedList;
 /**
  * Trivial class to load and use Clojure in a Java application that doesn't include it by default.
  */
-public class Test {
+public class LoadClojureTest {
     public class A {
         int x;
     }
