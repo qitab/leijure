@@ -38,10 +38,52 @@ public class DynamicVariable<A> {
     }
 
     @Nullable
-    public <B> B with (@Nullable A a, Callable<B> thunk) throws Exception {
+    public <R, X extends Exception> R with (@Nullable A a, Fun.RX<R, X> thunk) throws X {
         push(a);
         try {
             return thunk.call();
+        }
+        finally {
+            pop();
+        }
+    }
+
+    @Nullable
+    public <R> R with (@Nullable A a, Callable<R> thunk) throws Exception {
+        push(a);
+        try {
+            return thunk.call();
+        }
+        finally {
+            pop();
+        }
+    }
+
+    @Nullable
+    public <R> R with (@Nullable A a, Fun.R<R> thunk) {
+        push(a);
+        try {
+            return thunk.call();
+        }
+        finally {
+            pop();
+        }
+    }
+
+    public void with (@Nullable A a, Fun.VE thunk) throws Exception {
+        push(a);
+        try {
+            thunk.run();
+        }
+        finally {
+            pop();
+        }
+    }
+
+    public <X extends Exception> void with (@Nullable A a, Fun.VX<X> thunk) throws X {
+        push(a);
+        try {
+            thunk.run();
         }
         finally {
             pop();

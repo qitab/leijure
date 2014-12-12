@@ -16,18 +16,34 @@ import javax.annotation.Nullable;
  */
 public class WithDynamic {
     private static ThreadLocal<DynamicEnvironment<Object,Object>> environment =
-        new ThreadLocal <DynamicEnvironment<Object,Object>> () {
+        new ThreadLocal<DynamicEnvironment<Object,Object>> () {
         @Override protected DynamicEnvironment<Object,Object> initialValue () {
             return new DynamicEnvironment<Object,Object> ();
-        }
-    };
+        }};
 
-    private static DynamicEnvironment<Object,Object> getEnvironment() {
+    public static DynamicEnvironment<Object,Object> getEnvironment() {
         return environment.get();
     }
 
-    public class Run implements Runnable {
-        public void run () {}
+    public static Object get(Object key) {
+        return environment.get().get(key);
+    }
+
+    private static Map<Object, Object> singletonMap(Object key, Object value) {
+        final Map<Object, Object> map = new HashMap(1);
+        map.put(key, value);
+        return map;
+    }
+
+    private static Map<Object, Object> arrayMap(Object... kv) {
+        final Map<Object, Object> map = new HashMap(kv.length/2);
+        for (int i = 0; i < kv.length; i += 2) {
+            map.put(kv[i],kv[i + 1]);
+        }
+        return map;
+    }
+
+    public static abstract class Run implements Fun.V {
 
         public Run (Map<?,?> m) {
             getEnvironment().with(m, this);
@@ -37,23 +53,86 @@ public class WithDynamic {
             getEnvironment().with(k, v, this);
         }
 
-        public Run (Object k1, Object v1, Object k2, Object v2) {
-            getEnvironment().with(k1, v1, k2, v2, this);
-        }
-
         public Run (Object... kv) {
             getEnvironment().with(kv, this);
         }
     }
 
-    public class Call <T> implements Callable<T> {
-        private final Map<Object, Object> map;
+    public static abstract class RunX<X extends Exception> implements Fun.VX<X> {
 
-        public T call () throws Exception { return null; }
+        public RunX (Map<?,?> m) throws X {
+            getEnvironment().<X>with(m, this);
+        }
 
-        public T get () throws Exception {
-            DynamicEnvironment<Object,Object> env = getEnvironment();
-            return env.<T>with(map, this);
+        public RunX (Object k, Object v) throws X {
+            getEnvironment().<X>with(k, v, this);
+        }
+
+        public RunX (Object... kv) throws X {
+            getEnvironment().<X>with(kv, this);
+        }
+    }
+
+    public static abstract class RunE implements Fun.VE {
+
+        public RunE (Map<?,?> m) throws Exception {
+            getEnvironment().with(m, this);
+        }
+
+        public RunE (Object k, Object v) throws Exception {
+            getEnvironment().with(k, v, this);
+        }
+
+        public RunE (Object... kv) throws Exception {
+            getEnvironment().with(kv, this);
+        }
+    }
+
+    public static abstract class CallE <R> implements Fun.RE<R> {
+        private Map<Object, Object> map;
+
+        public R get () throws Exception {
+            return getEnvironment().<R>with(map, this);
+        }
+
+        public CallE (Map<? extends Object,? extends Object> m) {
+            map = (Map<Object,Object>)m;
+        }
+
+        public CallE (Object k, Object v) {
+            map = singletonMap(k, v);
+        }
+
+        public CallE (Object... kv) {
+            map = arrayMap(kv);
+        }
+    }
+
+    public static abstract class CallX <R, X extends Exception> implements Fun.RX<R, X> {
+        private Map<Object, Object> map;
+
+        public R get () throws X {
+            return getEnvironment().<R, X>with(map, this);
+        }
+
+        public CallX (Map<? extends Object,? extends Object> m) {
+            map = (Map<Object,Object>)m;
+        }
+
+        public CallX (Object k, Object v) {
+            map = singletonMap(k, v);
+        }
+
+        public CallX (Object... kv) {
+            map = arrayMap(kv);
+        }
+    }
+
+    public static abstract class Call <R> implements Fun.R<R> {
+        private Map<Object, Object> map;
+
+        public R get () {
+            return getEnvironment().<R>with(map, this);
         }
 
         public Call (Map<? extends Object,? extends Object> m) {
@@ -61,28 +140,11 @@ public class WithDynamic {
         }
 
         public Call (Object k, Object v) {
-            map = new HashMap(1);
-            map.put(k,v);
-        }
-
-        public Call (Object k1, Object v1, Object k2, Object v2) {
-            map = new HashMap(2);
-            map.put(k1,v1);
-            map.put(k2,v2);
-        }
-
-        public Call (Object k1, Object v1, Object k2, Object v2, Object k3, Object v3) {
-            map = new HashMap(3);
-            map.put(k1,v1);
-            map.put(k2,v2);
-            map.put(k3,v3);
+            map = singletonMap(k, v);
         }
 
         public Call (Object... kv) {
-            map = new HashMap(kv.length/2);
-            for (int i = 0; i < kv.length; i += 2) {
-                map.put(kv[i],kv[i + 1]);
-            }
+            map = arrayMap(kv);
         }
     }
 }
