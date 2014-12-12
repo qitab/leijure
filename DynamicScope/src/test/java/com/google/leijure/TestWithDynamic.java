@@ -5,9 +5,6 @@
 package com.google.leijure;
 
 import com.google.leijure.WithDynamic;
-import com.google.leijure.DynamicScope;
-
-import java.util.concurrent.Callable;
 
 import junit.framework.TestCase;
 
