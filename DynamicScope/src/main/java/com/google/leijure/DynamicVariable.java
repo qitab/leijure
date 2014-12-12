@@ -38,7 +38,7 @@ public class DynamicVariable<A> {
     }
 
     @Nullable
-    public <B> B callWith (@Nullable A a, Callable<B> thunk) throws Exception {
+    public <B> B with (@Nullable A a, Callable<B> thunk) throws Exception {
         push(a);
         try {
             return thunk.call();

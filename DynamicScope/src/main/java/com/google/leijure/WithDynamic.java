@@ -53,7 +53,7 @@ public class WithDynamic {
 
         public T get () throws Exception {
             DynamicEnvironment<Object,Object> env = getEnvironment();
-            return env.<T>callWith(map, this);
+            return env.<T>with(map, this);
         }
 
         public Call (Map<? extends Object,? extends Object> m) {

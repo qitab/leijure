@@ -57,24 +57,24 @@ public class DynamicEnvironment<K, V> extends AbstractMap<K, V> {
         return getEnvironment().entrySet();
     }
 
-    public <T> T callWith(Map<? extends K, ? extends V> newBindings, Callable<T> thunk) throws Exception {
-        return environment.<T>callWith(getEnvironment().plusAll(newBindings), thunk);
+    public <T> T with(Map<? extends K, ? extends V> newBindings, Callable<T> thunk) throws Exception {
+        return environment.<T>with(getEnvironment().plusAll(newBindings), thunk);
     }
 
-    public <T> T callWith(Object[] kv, Callable<T> thunk) throws Exception {
-        return environment.<T>callWith(plusArray(getEnvironment(), kv), thunk);
+    public <T> T with(Object[] kv, Callable<T> thunk) throws Exception {
+        return environment.<T>with(plusArray(getEnvironment(), kv), thunk);
     }
 
-    public <T> T callWith(K k, V v, Callable<T> thunk) throws Exception {
-        return environment.<T>callWith(environment.get().plus(k,v), thunk);
+    public <T> T with(K k, V v, Callable<T> thunk) throws Exception {
+        return environment.<T>with(environment.get().plus(k,v), thunk);
     }
 
-    public <T> T callWith(K k1, V v1, K k2, V v2, Callable<T> thunk) throws Exception {
-        return environment.<T>callWith(environment.get().plus(k1,v1).plus(k2,v2), thunk);
+    public <T> T with(K k1, V v1, K k2, V v2, Callable<T> thunk) throws Exception {
+        return environment.<T>with(environment.get().plus(k1,v1).plus(k2,v2), thunk);
     }
 
-    public <T> T callWith(K k1, V v1, K k2, V v2, K k3, V v3, Callable<T> thunk) throws Exception {
-        return environment.<T>callWith(environment.get().plus(k1,v1).plus(k2,v2).plus(k3,v3), thunk);
+    public <T> T with(K k1, V v1, K k2, V v2, K k3, V v3, Callable<T> thunk) throws Exception {
+        return environment.<T>with(environment.get().plus(k1,v1).plus(k2,v2).plus(k3,v3), thunk);
     }
 
     public void with(Map<? extends K, ? extends V> newBindings, Runnable thunk) {

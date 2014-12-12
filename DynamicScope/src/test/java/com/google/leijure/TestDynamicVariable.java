@@ -19,7 +19,7 @@ public class TestDynamicVariable extends TestCase {
     public void testDynamicInteger() throws Exception {
         final DynamicVariable<Integer> var = new DynamicVariable<Integer>(0);
         assertEquals(var.get(), (Integer)0);
-        Integer i = var.callWith(3, new Callable<Integer> () { @Override public Integer call() {
+        Integer i = var.with(3, new Callable<Integer> () { @Override public Integer call() {
                     return var.get(); }
             });
         assertEquals(i, (Integer)3);
