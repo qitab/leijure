@@ -7,8 +7,9 @@ package com.google.leijure;
 import java.util.HashMap;
 import java.util.Map;
 
-// import javax.annotation.Nullable;
+import javax.annotation.Nullable;
 
+import org.pcollections.HashPMap;
 
 /**
  * Trivial implementation of a DynamicVariable
@@ -24,22 +25,20 @@ public class WithDynamic {
         return environment.get();
     }
 
+    public static HashPMap<Object,Object> getBindings() {
+        return getEnvironment().getBindings();
+    }
+
     public static Object get(Object key) {
-        return environment.get().get(key);
+        return getEnvironment().get(key);
     }
 
-    private static Map<Object, Object> singletonMap(Object key, Object value) {
-        final Map<Object, Object> map = new HashMap(1);
-        map.put(key, value);
-        return map;
+    public static Object[] Array1(Object x) {
+        return new Object[] { x };
     }
 
-    private static Map<Object, Object> arrayMap(Object... kv) {
-        final Map<Object, Object> map = new HashMap(kv.length/2);
-        for (int i = 0; i < kv.length; i += 2) {
-            map.put(kv[i],kv[i + 1]);
-        }
-        return map;
+    public static Object[] Array2(Object x, Object y) {
+        return new Object[] { x, y };
     }
 
     public static abstract class Run implements Fun.V {
@@ -88,62 +87,62 @@ public class WithDynamic {
     }
 
     public static abstract class CallE <R> implements Fun.RE<R> {
-        private Map<Object, Object> map;
+        private Object[] kv;
 
         public R get () throws Exception {
-            return getEnvironment().<R>with(map, this);
+            return getEnvironment().<R>with(kv, this);
         }
 
         public CallE (Map<? extends Object,? extends Object> m) {
-            map = (Map<Object,Object>)m;
+            kv = Array1(m);
         }
 
         public CallE (Object k, Object v) {
-            map = singletonMap(k, v);
+            kv = Array2(k, v);
         }
 
-        public CallE (Object... kv) {
-            map = arrayMap(kv);
+        public CallE (Object... kvl) {
+            kv = kvl;
         }
     }
 
     public static abstract class CallX <R, X extends Exception> implements Fun.RX<R, X> {
-        private Map<Object, Object> map;
+        private Object[] kv;
 
         public R get () throws X {
-            return getEnvironment().<R, X>with(map, this);
+            return getEnvironment().<R, X>with(kv, this);
         }
 
         public CallX (Map<? extends Object,? extends Object> m) {
-            map = (Map<Object,Object>)m;
+            kv = Array1(m);
         }
 
         public CallX (Object k, Object v) {
-            map = singletonMap(k, v);
+            kv = Array2(k, v);
         }
 
-        public CallX (Object... kv) {
-            map = arrayMap(kv);
+        public CallX (Object... kvl) {
+            kv = kvl;
         }
     }
 
     public static abstract class Call <R> implements Fun.R<R> {
-        private Map<Object, Object> map;
+        private Object[] kv;
 
         public R get () {
-            return getEnvironment().<R>with(map, this);
+            return getEnvironment().<R>with(kv, this);
         }
 
         public Call (Map<? extends Object,? extends Object> m) {
-            map = (Map<Object,Object>)m;
+            kv = Array1(m);
         }
 
         public Call (Object k, Object v) {
-            map = singletonMap(k, v);
+            kv = Array2(k, v);
         }
 
-        public Call (Object... kv) {
-            map = arrayMap(kv);
+        public Call (Object... kvl) {
+            kv = kvl;
         }
     }
 }

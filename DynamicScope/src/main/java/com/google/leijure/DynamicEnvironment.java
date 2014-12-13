@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 
 import org.pcollections.HashPMap;
 import org.pcollections.HashTreePMap;
+import org.pcollections.PMap;
 
 
 /**
@@ -37,96 +38,99 @@ public class DynamicEnvironment<K, V> extends AbstractMap<K, V> {
         this(null);
     }
 
-    public HashPMap<K, V> getEnvironment() {
+    public HashPMap<K, V> getBindings() {
         return environment.get();
     }
 
-    private static <K, V> HashPMap<K, V> plusArray (HashPMap<K, V> bindings, Object... kv) {
+    public static <K, V> HashPMap<K, V> plusArray (HashPMap<K, V> bindings, Object... kv) {
         for (int i = 0; i < kv.length; i += 2) {
             bindings = bindings.plus((K)kv[i], (V)kv[i + 1]);
+        }
+        if (kv.length % 2 == 1) {
+            bindings = bindings.plusAll((Map<K, V>)kv[kv.length - 1]);
         }
         return bindings;
     }
 
     @Nullable
     public V get(Object k) {
-        return getEnvironment().<K, V>get(k);
+        return getBindings().<K, V>get(k);
     }
 
     public Set<Map.Entry<K, V>> entrySet () {
-        return getEnvironment().entrySet();
+        return getBindings().entrySet();
     }
 
     public <T> T with(Map<? extends K, ? extends V> newBindings, Callable<T> thunk) throws Exception {
-        return environment.<T>with(getEnvironment().plusAll(newBindings), thunk);
+        return environment.<T>with(getBindings().plusAll(newBindings), thunk);
     }
 
     public <T> T with(Object[] kv, Callable<T> thunk) throws Exception {
-        return environment.<T>with(plusArray(getEnvironment(), kv), thunk);
+        return environment.<T>with(plusArray(getBindings(), kv), thunk);
     }
 
     public <T> T with(K k, V v, Callable<T> thunk) throws Exception {
-        return environment.<T>with(environment.get().plus(k,v), thunk);
+        return environment.<T>with(getBindings().plus(k,v), thunk);
     }
 
     public <T, X extends Exception> T with(Map<? extends K, ? extends V> newBindings,
                                            Fun.RX<T, X> thunk) throws X {
-        return environment.<T, X>with(getEnvironment().plusAll(newBindings), thunk);
+        return environment.<T, X>with(getBindings().plusAll(newBindings), thunk);
     }
 
     public <T, X extends Exception> T with(Object[] kv, Fun.RX<T, X> thunk) throws X {
-        return environment.<T, X>with(plusArray(getEnvironment(), kv), thunk);
+        return environment.<T, X>with(plusArray(getBindings(), kv), thunk);
     }
 
     public <T, X extends Exception> T with(K k, V v, Fun.RX<T, X> thunk) throws X {
-        return environment.<T, X>with(environment.get().plus(k,v), thunk);
+        return environment.<T, X>with(getBindings().plus(k,v), thunk);
     }
 
     public <T> T with(Map<? extends K, ? extends V> newBindings, Fun.R<T> thunk) {
-        return environment.<T>with(getEnvironment().plusAll(newBindings), thunk);
+        return environment.<T>with(getBindings().plusAll(newBindings), thunk);
     }
 
     public <T> T with(Object[] kv, Fun.R<T> thunk) {
-        return environment.<T>with(plusArray(getEnvironment(), kv), thunk);
+        return environment.<T>with(plusArray(getBindings(), kv), thunk);
     }
 
     public <T> T with(K k, V v, Fun.R<T> thunk) {
-        return environment.<T>with(environment.get().plus(k,v), thunk);
+        return environment.<T>with(getBindings().plus(k,v), thunk);
     }
 
     public void with(Map<? extends K, ? extends V> newBindings, Fun.VE thunk) throws Exception {
-        environment.with(environment.get().plusAll(newBindings), thunk);
+        environment.with(getBindings().plusAll(newBindings), thunk);
     }
 
     public void with(Object[] kv, Fun.VE thunk) throws Exception {
-        environment.with(plusArray(environment.get(), kv), thunk);
+        environment.with(plusArray(getBindings(), kv), thunk);
     }
 
     public void with(K k, V v, Fun.VE thunk) throws Exception {
-        environment.with(environment.get().plus(k,v), thunk);
+        environment.with(getBindings().plus(k,v), thunk);
     }
 
     public <X extends Exception> void with(Map<? extends K, ? extends V> newBindings, Fun.VX<X> thunk) throws X {
-        environment.<X>with(environment.get().plusAll(newBindings), thunk);
+        environment.<X>with(getBindings().plusAll(newBindings), thunk);
     }
 
     public <X extends Exception> void with(Object[] kv, Fun.VX<X> thunk) throws X {
-        environment.<X>with(plusArray(environment.get(), kv), thunk);
+        environment.<X>with(plusArray(getBindings(), kv), thunk);
     }
 
     public <X extends Exception> void with(K k, V v, Fun.VX<X> thunk) throws X {
-        environment.<X>with(environment.get().plus(k,v), thunk);
+        environment.<X>with(getBindings().plus(k,v), thunk);
     }
 
     public void with(Map<? extends K, ? extends V> newBindings, Runnable thunk) {
-        environment.with(environment.get().plusAll(newBindings), thunk);
+        environment.with(getBindings().plusAll(newBindings), thunk);
     }
 
     public void with(Object[] kv, Runnable thunk) {
-        environment.with(plusArray(environment.get(), kv), thunk);
+        environment.with(plusArray(getBindings(), kv), thunk);
     }
 
     public void with(K k, V v, Runnable thunk) {
-        environment.with(environment.get().plus(k,v), thunk);
+        environment.with(getBindings().plus(k,v), thunk);
     }
 }

@@ -6,37 +6,39 @@ package com.google.leijure;
 
 import java.util.concurrent.Callable;
 
+import javax.annotation.Nullable;
+
 /**
  * Functions returning zero or one (R)esult, taking zero or one (A)rgument,
  * and throwing no exception, one (X)ception or all (E)exceptions.
  */
 public class Fun {
     public interface RAE<R, A> {
-        public R call(A a) throws Exception;
+        @Nullable public R call(@Nullable A a) throws Exception;
     }
     public interface RAX<R, A, X extends Exception> {
-        public R call(A a) throws X;
+        @Nullable public R call(@Nullable A a) throws X;
     }
     public interface RA<R, A> {
-        public R call(A a);
+        @Nullable public R call(@Nullable A a);
     }
     public interface RE<R> extends Callable<R> {
-        public R call() throws Exception;
+        @Nullable public R call() throws Exception;
     }
     public interface RX<R, X extends Exception> {
-        public R call() throws X;
+        @Nullable public R call() throws X;
     }
     public interface R<R> extends RE<R> {
-        public R call();
+        @Nullable public R call();
     }
     public interface VAE<A> {
-        public void run(A a) throws Exception;
+        public void run(@Nullable A a) throws Exception;
     }
     public interface VAX<A, X extends Exception> {
-        public void run(A a) throws X;
+        public void run(@Nullable A a) throws X;
     }
     public interface VA<A> {
-        public void run(A a);
+        public void run(@Nullable A a);
     }
     public interface VE {
         public void run() throws Exception;
