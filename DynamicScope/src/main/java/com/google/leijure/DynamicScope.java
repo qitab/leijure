@@ -12,9 +12,10 @@ import javax.annotation.Nullable;
 import org.pcollections.HashPMap;
 
 /**
- * Trivial implementation of a DynamicVariable
+ * Trivial implementation of a DynamicScope providing get(key) to read bindings,
+ * and RunWith() and CallWith() to dynamically define new bindings in the current thread.
  */
-public class WithDynamic {
+public class DynamicScope {
     private static ThreadLocal<DynamicEnvironment<Object,Object>> environment =
         new ThreadLocal<DynamicEnvironment<Object,Object>> () {
         @Override protected DynamicEnvironment<Object,Object> initialValue () {
@@ -33,115 +34,115 @@ public class WithDynamic {
         return getEnvironment().get(key);
     }
 
-    public static Object[] Array1(Object x) {
-        return new Object[] { x };
-    }
+    public static abstract class RunWith implements Fun.V {
 
-    public static Object[] Array2(Object x, Object y) {
-        return new Object[] { x, y };
-    }
-
-    public static abstract class Run implements Fun.V {
-
-        public Run (Map<?,?> m) {
+        public RunWith (Map<?,?> m) {
             getEnvironment().with(m, this);
         }
 
-        public Run (Object k, Object v) {
+        public RunWith (Object k, Object v) {
             getEnvironment().with(k, v, this);
         }
 
-        public Run (Object... kv) {
+        public RunWith (Object... kv) {
             getEnvironment().with(kv, this);
         }
     }
 
-    public static abstract class RunX<X extends Exception> implements Fun.VX<X> {
+    public static abstract class RunWithX<X extends Exception> implements Fun.VX<X> {
 
-        public RunX (Map<?,?> m) throws X {
+        public RunWithX (Map<?,?> m) throws X {
             getEnvironment().<X>with(m, this);
         }
 
-        public RunX (Object k, Object v) throws X {
+        public RunWithX (Object k, Object v) throws X {
             getEnvironment().<X>with(k, v, this);
         }
 
-        public RunX (Object... kv) throws X {
+        public RunWithX (Object... kv) throws X {
             getEnvironment().<X>with(kv, this);
         }
     }
 
-    public static abstract class RunE implements Fun.VE {
+    public static abstract class RunWithE implements Fun.VE {
 
-        public RunE (Map<?,?> m) throws Exception {
+        public RunWithE (Map<?,?> m) throws Exception {
             getEnvironment().with(m, this);
         }
 
-        public RunE (Object k, Object v) throws Exception {
+        public RunWithE (Object k, Object v) throws Exception {
             getEnvironment().with(k, v, this);
         }
 
-        public RunE (Object... kv) throws Exception {
+        public RunWithE (Object... kv) throws Exception {
             getEnvironment().with(kv, this);
         }
     }
 
-    public static abstract class CallE <R> implements Fun.RE<R> {
-        private Object[] kv;
-
-        public R get () throws Exception {
-            return getEnvironment().<R>with(kv, this);
-        }
-
-        public CallE (Map<? extends Object,? extends Object> m) {
-            kv = Array1(m);
-        }
-
-        public CallE (Object k, Object v) {
-            kv = Array2(k, v);
-        }
-
-        public CallE (Object... kvl) {
-            kv = kvl;
-        }
+    private static Object[] Array1(Object x) {
+        return new Object[] { x };
     }
 
-    public static abstract class CallX <R, X extends Exception> implements Fun.RX<R, X> {
-        private Object[] kv;
-
-        public R get () throws X {
-            return getEnvironment().<R, X>with(kv, this);
-        }
-
-        public CallX (Map<? extends Object,? extends Object> m) {
-            kv = Array1(m);
-        }
-
-        public CallX (Object k, Object v) {
-            kv = Array2(k, v);
-        }
-
-        public CallX (Object... kvl) {
-            kv = kvl;
-        }
+    private static Object[] Array2(Object x, Object y) {
+        return new Object[] { x, y };
     }
 
-    public static abstract class Call <R> implements Fun.R<R> {
+    public static abstract class CallWith <R> implements Fun.R<R> {
         private Object[] kv;
 
         public R get () {
             return getEnvironment().<R>with(kv, this);
         }
 
-        public Call (Map<? extends Object,? extends Object> m) {
+        public CallWith (Map<? extends Object,? extends Object> m) {
             kv = Array1(m);
         }
 
-        public Call (Object k, Object v) {
+        public CallWith (Object k, Object v) {
             kv = Array2(k, v);
         }
 
-        public Call (Object... kvl) {
+        public CallWith (Object... kvl) {
+            kv = kvl;
+        }
+    }
+
+    public static abstract class CallWithX <R, X extends Exception> implements Fun.RX<R, X> {
+        private Object[] kv;
+
+        public R get () throws X {
+            return getEnvironment().<R, X>with(kv, this);
+        }
+
+        public CallWithX (Map<? extends Object,? extends Object> m) {
+            kv = Array1(m);
+        }
+
+        public CallWithX (Object k, Object v) {
+            kv = Array2(k, v);
+        }
+
+        public CallWithX (Object... kvl) {
+            kv = kvl;
+        }
+    }
+
+    public static abstract class CallWithE <R> implements Fun.RE<R> {
+        private Object[] kv;
+
+        public R get () throws Exception {
+            return getEnvironment().<R>with(kv, this);
+        }
+
+        public CallWithE (Map<? extends Object,? extends Object> m) {
+            kv = Array1(m);
+        }
+
+        public CallWithE (Object k, Object v) {
+            kv = Array2(k, v);
+        }
+
+        public CallWithE (Object... kvl) {
             kv = kvl;
         }
     }
